@@ -1,2 +1,8 @@
+# IDE
 .idea
+
+# Python
 __pycache__
+
+# Models
+reddit

@@ -18,7 +18,10 @@ from emoji import emojize
 import json
 import requests
 
-TOKEN = "<TOKEN>"
+with open("config.json") as json_data_file:
+    data = json.load(json_data_file)
+
+TOKEN = data["token"]
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
 
 DEFAULT_MESSAGE = "The bot is writing"
@@ -77,11 +80,6 @@ def get_last_chat_id_and_text(updates):
     text = updates["result"][last_update]["message"]["text"]
     chat_id = updates["result"][last_update]["message"]["chat"]["id"]
     return (text, chat_id)
-
-
-def delete_message(chat_id, message_id):
-    url = URL + "deleteMessage?chat_id={}&message_id={}".format(chat_id, message_id)
-    get_url(url)
 
 def send_message(chat_id, user_input):
     print("User: " + user_input)

@@ -12,10 +12,12 @@ git clone https://github.com/software-engineer-mj/polyglot-bot.git
 
 #### 2. Download the [pre-trained model](https://drive.google.com/uc?id=1rRRY-y1KdVk4UB5qhu7BjQHtfadIOmMk&export=download). Place the "reddit" folder into the "models" directory of this project.
 
-#### 3. Change the bot token.
+#### 3. Change the bot token in config.json.
 
 ```
-TOKEN = "<TOKEN>"
+{
+  "token": "BOT_TOKEN"
+}
 ```
 
 #### 4. Run the program.
