@@ -1,4 +1,4 @@
-# polyglot-bot
+# polyglot-bot (Telegram)
 
 ![polyglotbot]
 

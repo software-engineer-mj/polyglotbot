@@ -17,14 +17,15 @@ from googletrans import Translator
 from emoji import emojize
 import json
 import requests
+import threading
+from threading import Thread
 
 with open("config.json") as json_data_file:
     data = json.load(json_data_file)
 
 TOKEN = data["token"]
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
-
-DEFAULT_MESSAGE = "The bot is writing"
+DEFAULT_MESSAGE = "The bot is typing . . ."
 
 model_path = None
 net = None
@@ -33,7 +34,7 @@ vocab = None
 max_length = None
 beam_width = None
 relevance = None
-temperature= None
+temperature = None
 topn = None
 states = None
 
@@ -72,7 +73,7 @@ def echo_all(updates):
         except:
             continue
 
-        send_message(chat_id, user_input)
+        get_message(chat_id, user_input)
 
 def get_last_chat_id_and_text(updates):
     num_updates = len(updates["result"])
@@ -81,16 +82,11 @@ def get_last_chat_id_and_text(updates):
     chat_id = updates["result"][last_update]["message"]["chat"]["id"]
     return (text, chat_id)
 
-def send_message(chat_id, user_input):
-    print("User: " + user_input)
-
-    translator = Translator()
-    translated_input = translator.translate(user_input, 'en')
-    print("User(Translation): " + translated_input.text)
-
-    url = URL + "sendMessage?chat_id={}&text={}".format(chat_id, emojize(":pencil2:", use_aliases=True) + " " + translator.translate(DEFAULT_MESSAGE, translated_input.src).text + " . . .")
+def send_default_message(chat_id, translator, translated_input):
+    url = URL + "sendMessage?chat_id={}&text={}".format(chat_id, emojize(":pencil2:", use_aliases=True) + " " + translator.translate(DEFAULT_MESSAGE, translated_input.src).text)
     get_url(url)
 
+def send_message(chat_id, translator, translated_input):
     out_chars = chatbot_action(translated_input.text)
     print("Bot: " + ''.join(out_chars))
     translated_output = translator.translate(''.join(out_chars), translated_input.src)
@@ -99,6 +95,16 @@ def send_message(chat_id, user_input):
 
     url = URL + "sendMessage?chat_id={}&text={}".format(chat_id, translated_output.text)
     get_url(url)
+
+def get_message(chat_id, user_input):
+    print("User: " + user_input)
+
+    translator = Translator()
+    translated_input = translator.translate(user_input, 'en')
+    print("User(Translation): " + translated_input.text)
+
+    Thread(target=send_default_message(chat_id, translator, translated_input)).start()
+    Thread(target=send_message(chat_id, translator, translated_input)).start()
 
 def telegram_bot():
     last_update_id = ""
