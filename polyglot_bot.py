@@ -17,15 +17,23 @@ from googletrans import Translator
 from emoji import emojize
 import json
 import requests
-import threading
 from threading import Thread
+from textblob import TextBlob
 
 with open("config.json") as json_data_file:
     data = json.load(json_data_file)
 
 TOKEN = data["token"]
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
+
+HIGH_POSITIVITY_EMOJI = ":smile:"
+HIGH_NEGATIVITY_EMOJI = ":triumph:"
+POSITIVITY_EMOJI = ":smirk:"
+NEGATIVITY_EMOJI = ":frowning:"
+PEN_EMOJI = ":pencil2:"
+
 DEFAULT_MESSAGE = "The bot is typing . . ."
+DEFAULT_LINE = "\n" + "* " * 55 + "\n"
 
 model_path = None
 net = None
@@ -68,12 +76,13 @@ def get_last_update_id(updates):
 def echo_all(updates):
     for update in updates["result"]:
         try:
-            user_input = update["message"]["text"]
             chat_id = update["message"]["chat"]["id"]
+            username = update["message"]["chat"]["username"]
+            user_input = update["message"]["text"]
         except:
             continue
 
-        get_message(chat_id, user_input)
+        get_message(chat_id, username, user_input)
 
 def get_last_chat_id_and_text(updates):
     num_updates = len(updates["result"])
@@ -83,28 +92,50 @@ def get_last_chat_id_and_text(updates):
     return (text, chat_id)
 
 def send_default_message(chat_id, translator, translated_input):
-    url = URL + "sendMessage?chat_id={}&text={}".format(chat_id, emojize(":pencil2:", use_aliases=True) + " " + translator.translate(DEFAULT_MESSAGE, translated_input.src).text)
+    url = URL + "sendMessage?chat_id={}&text={}".format(chat_id, emojize(PEN_EMOJI, use_aliases=True) + " " + translator.translate(DEFAULT_MESSAGE, translated_input.src).text)
     get_url(url)
 
 def send_message(chat_id, translator, translated_input):
     out_chars = chatbot_action(translated_input.text)
-    print("Bot: " + ''.join(out_chars))
-    translated_output = translator.translate(''.join(out_chars), translated_input.src)
-    print("Bot(Translation): " + translated_output.text)
-    print("* = * = * = * = * = * = * = * = * = * = * = * = * = * = * = * = * = * = * = * = * = * = * = * = *\n")
+    result = ''.join(out_chars)
+    print("Bot: " + result)
 
-    url = URL + "sendMessage?chat_id={}&text={}".format(chat_id, translated_output.text)
+    emotion = ""
+    polarity = TextBlob(result).sentiment.polarity
+
+    if polarity > 0.5:
+        emotion = HIGH_POSITIVITY_EMOJI
+    elif polarity > 0:
+        emotion = POSITIVITY_EMOJI
+    elif polarity == 0:
+        emotion = ""
+    elif polarity > -0.5:
+        emotion = NEGATIVITY_EMOJI
+    else:
+        emotion = HIGH_NEGATIVITY_EMOJI
+
+    if translated_input.src != "en":
+        result = translator.translate(result, translated_input.src).text
+
+    print("Bot (Translation): " + result)
+    print("Bot (Sentiment): " + str(polarity))
+    print(DEFAULT_LINE)
+
+    url = URL + "sendMessage?chat_id={}&text={}".format(chat_id, result + emojize(emotion, use_aliases=True))
     get_url(url)
 
-def get_message(chat_id, user_input):
-    print("User: " + user_input)
+def get_message(chat_id, username, user_input):
+    print(DEFAULT_LINE)
 
-    translator = Translator()
-    translated_input = translator.translate(user_input, 'en')
-    print("User(Translation): " + translated_input.text)
+    if user_input != '/start':
+        print("User - " + username + ": " + user_input)
 
-    Thread(target=send_default_message(chat_id, translator, translated_input)).start()
-    Thread(target=send_message(chat_id, translator, translated_input)).start()
+        translator = Translator()
+        translated_input = translator.translate(user_input, 'en')
+        print("User - " + username + " (Translation): " + translated_input.text)
+
+        Thread(target=send_default_message(chat_id, translator, translated_input)).start()
+        Thread(target=send_message(chat_id, translator, translated_input)).start()
 
 def telegram_bot():
     last_update_id = ""
@@ -234,7 +265,6 @@ def possibly_escaped_char(raw_chars):
     return raw_chars[-1]
 
 def chatbot(net, chars, vocab, max_length, beam_width, relevance, temperature, topn):
-    # Kakao Bot
     global states, sess
     states = initial_state_with_relevance_masking(net, sess, relevance)
     tf.global_variables_initializer().run(session=sess)
@@ -242,7 +272,6 @@ def chatbot(net, chars, vocab, max_length, beam_width, relevance, temperature, t
     saver.restore(sess, model_path)
     return sess
 
-# Kakao Bot
 def chatbot_action(user_input):
     global model_path, net, chars, vocab, max_length, beam_width, relevance, temperature, topn, states, sess
 

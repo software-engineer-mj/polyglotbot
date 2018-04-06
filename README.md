@@ -2,6 +2,8 @@
 
 ![polyglot_bot]
 
+### Credits
+
 This repository is based on [char-rnn](https://github.com/pender/chatbot-rnn).
 
 ### Dependencies
@@ -11,6 +13,7 @@ This repository is based on [char-rnn](https://github.com/pender/chatbot-rnn).
 - numpy
 - googletrans 
 - emoji
+- textblob
 
 ### Get Started
 
@@ -33,7 +36,7 @@ git clone https://github.com/software-engineer-mj/polyglot-bot.git
 #### 4. Run the program.
 
 ```
-python polyglot_bot.py
+python3 polyglot_bot.py
 ```
 
 [polyglot_bot]:/images/polyglot_bot.png
