@@ -4,7 +4,7 @@
 
 ### Credits
 
-This repository is based on [char-rnn](https://github.com/pender/chatbot-rnn).
+This repository is based on [chatbot-rnn](https://github.com/pender/chatbot-rnn).
 
 ### Dependencies
 
