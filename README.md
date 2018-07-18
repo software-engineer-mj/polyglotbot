@@ -1,6 +1,6 @@
-# polyglot-bot (Telegram)
+# polyglotbot (Telegram chatbot)
 
-![polyglot_bot]
+![polyglotbot]
 
 ### Credits
 
@@ -36,7 +36,7 @@ git clone https://github.com/software-engineer-mj/polyglot-bot.git
 #### 4. Run the program.
 
 ```
-python3 polyglot_bot.py
+python3 polyglotbot.py
 ```
 
-[polyglot_bot]:/images/polyglot_bot.png
+[polyglotbot]:/images/polyglotbot.png
